@@ -1,0 +1,887 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Yeshna ❤️ Pinni — Valentine Story</title>
+  <style>
+    :root{
+      --bg1:#ffb3c7; --bg2:#ffd6e5; --bg3:#fff0f6;
+      --ink:#2b1b2a; --card:#ffffffcc; --shadow: 0 20px 60px rgba(0,0,0,.15);
+      --good:#22c55e; --warn:#ef4444; --gold:#ffd86b; --blue:#60a5fa; --purple:#a78bfa;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0; min-height:100vh; display:grid; place-items:center;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      color:var(--ink);
+      background:
+        radial-gradient(1200px 800px at 20% 20%, var(--bg1), transparent 60%),
+        radial-gradient(1200px 800px at 80% 30%, var(--bg2), transparent 55%),
+        radial-gradient(900px 700px at 50% 90%, var(--bg3), #fff 60%);
+      overflow:hidden;
+    }
+
+    .floaters{ position:fixed; inset:0; pointer-events:none; }
+    .floater{
+      position:absolute; width:18px; height:18px; opacity:.55;
+      animation: drift linear infinite;
+      filter: drop-shadow(0 8px 10px rgba(0,0,0,.12));
+    }
+    .floater::before{
+      content:""; position:absolute; inset:0;
+      background: linear-gradient(135deg, #ff4d6d, #ff8fab);
+      transform: rotate(45deg); border-radius:4px;
+    }
+    .floater::after{
+      content:""; position:absolute;
+      width:18px; height:18px; border-radius:50%;
+      left:-9px; top:0; opacity:.9;
+      background: linear-gradient(135deg, #ff4d6d, #ff8fab);
+      box-shadow: 9px -9px 0 0 rgba(255,77,109,.95);
+      transform: translate(9px,9px);
+    }
+    @keyframes drift{
+      from{ transform: translateY(110vh) translateX(0) rotate(0deg); }
+      to{ transform: translateY(-20vh) translateX(var(--dx)) rotate(360deg); }
+    }
+
+    canvas#confetti{ position:fixed; inset:0; pointer-events:none; display:none; }
+    canvas#confetti.show{ display:block; }
+
+    .stage{ width:min(1000px, 94vw); position:relative; }
+    .page{
+      display:none;
+      background:var(--card);
+      border:1px solid rgba(255,255,255,.6);
+      backdrop-filter: blur(10px);
+      border-radius:28px;
+      box-shadow: var(--shadow);
+      padding:26px 22px;
+      position:relative;
+      overflow:hidden;
+      transform: translateY(10px) scale(.985);
+      opacity:0;
+      transition: opacity .28s ease, transform .28s ease;
+    }
+    .page.active{ display:block; opacity:1; transform: translateY(0) scale(1); }
+
+    .top{ display:flex; gap:10px; align-items:center; justify-content:space-between; flex-wrap:wrap; }
+    .badge{
+      display:inline-flex; align-items:center; gap:8px;
+      padding:10px 14px; background:#ffffffd9;
+      border-radius:999px; border:1px solid rgba(0,0,0,.06);
+      font-weight:950;
+    }
+    .moon{
+      width:22px; height:22px; border-radius:50%;
+      background: radial-gradient(circle at 30% 30%, #fff7c2, var(--gold));
+      box-shadow: inset -6px -6px 0 rgba(0,0,0,.07);
+    }
+
+    h1{ margin:12px 0 8px; font-size: clamp(22px, 3.2vw, 34px); }
+    p{ margin:0; line-height:1.55; font-size: clamp(14px, 2.2vw, 16px); opacity:.92; }
+
+    .box{
+      margin-top:16px; padding:18px; background:#fff;
+      border-radius:18px; border:1px solid rgba(0,0,0,.06);
+      box-shadow: 0 12px 30px rgba(0,0,0,.08);
+      position:relative; overflow:hidden;
+    }
+    .spark{
+      position:absolute; inset:-40px; pointer-events:none;
+      background:
+        radial-gradient(circle at 20% 20%, rgba(255,77,109,.18), transparent 35%),
+        radial-gradient(circle at 80% 40%, rgba(34,197,94,.14), transparent 35%),
+        radial-gradient(circle at 40% 80%, rgba(255,216,107,.18), transparent 35%);
+      animation: pulse 2.6s ease-in-out infinite;
+    }
+    @keyframes pulse{
+      0%,100%{ transform: scale(1); opacity:.9; }
+      50%{ transform: scale(1.05); opacity:1; }
+    }
+    .title{ font-weight:1000; font-size: clamp(18px, 2.7vw, 26px); margin:0 0 10px; }
+
+    .btnRow{ margin-top:14px; display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
+    button{
+      border:none; border-radius:999px; padding:14px 22px;
+      font-weight:1000; font-size:16px; cursor:pointer;
+      transition: transform .12s ease, filter .12s ease;
+      user-select:none; white-space:nowrap;
+      position:relative; left:auto; top:auto;
+    }
+    button:active{ transform: scale(.98); }
+    button:hover{ filter:brightness(1.02); }
+
+    .yes{ background: linear-gradient(135deg, var(--good), #86efac); color:#053b18; box-shadow: 0 14px 26px rgba(34,197,94,.25); }
+    .no{ background: linear-gradient(135deg, var(--warn), #fda4af); color:#43060a; box-shadow: 0 14px 26px rgba(239,68,68,.22); }
+
+    .no.shy{ animation: shake .25s ease-in-out 2; }
+    @keyframes shake{
+      0%{ transform: translateX(0) rotate(0deg) scale(1); }
+      25%{ transform: translateX(-6px) rotate(-3deg) scale(.98); }
+      50%{ transform: translateX(6px) rotate(3deg) scale(.98); }
+      75%{ transform: translateX(-5px) rotate(-2deg) scale(.99); }
+      100%{ transform: translateX(0) rotate(0deg) scale(1); }
+    }
+    .no[data-level="1"]{ transform: scale(.92); opacity:.92; }
+    .no[data-level="2"]{ transform: scale(.84); opacity:.86; }
+    .no[data-level="3"]{ transform: scale(.76); opacity:.80; }
+    .no[data-level="4"]{ transform: scale(.68); opacity:.72; }
+    .no[data-level="5"]{ transform: scale(.60); opacity:.64; }
+    .no[data-level="6"]{ transform: scale(.52); opacity:.56; }
+    .no[data-level="7"]{ transform: scale(.44); opacity:.50; }
+    .no[data-level="8"]{ transform: scale(.36); opacity:.44; }
+
+    .hint{ margin-top:12px; font-size:14px; opacity:.8; font-weight:900; }
+    .dots{ display:flex; gap:8px; justify-content:center; margin-top:14px; opacity:.85; }
+    .dot{ width:10px; height:10px; border-radius:999px; background: rgba(0,0,0,.18); border:1px solid rgba(255,255,255,.5); }
+    .dot.on{ background: linear-gradient(135deg,#ff4d6d,var(--gold)); }
+
+    .mascot{ margin-top:10px; display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
+    .face{
+      width:56px;height:56px;border-radius:16px;
+      background: linear-gradient(135deg,#fff7c2,var(--gold));
+      display:grid; place-items:center; font-size:30px;
+      box-shadow: 0 14px 26px rgba(0,0,0,.08);
+      border:1px solid rgba(0,0,0,.06);
+      animation: bob 1.8s ease-in-out infinite;
+    }
+    @keyframes bob{ 0%,100%{ transform: translateY(0);} 50%{ transform: translateY(-6px);} }
+    .speech{
+      background:#ffffffd9; border:1px solid rgba(0,0,0,.06);
+      border-radius:16px; padding:10px 12px;
+      font-weight:950; font-size:14px;
+      box-shadow: 0 12px 22px rgba(0,0,0,.06);
+      max-width: 620px;
+    }
+
+    .starsArea{
+      margin-top:10px;
+      background: linear-gradient(135deg, #f8fafc, #fff0f6);
+      border:1px solid rgba(0,0,0,.06);
+      border-radius:18px;
+      padding:14px;
+      position:relative;
+      overflow:hidden;
+      min-height: 160px;
+    }
+    .star{
+      position:absolute; font-size:26px; cursor:pointer; user-select:none;
+      filter: drop-shadow(0 10px 10px rgba(0,0,0,.12));
+      animation: twinkle 1.8s ease-in-out infinite;
+    }
+    @keyframes twinkle{
+      0%,100%{ transform: scale(1); opacity:.95; }
+      50%{ transform: scale(1.15); opacity:1; }
+    }
+    .scoreRow{
+      display:flex; gap:10px; align-items:center; justify-content:space-between; flex-wrap:wrap;
+      margin-top:10px; font-weight:950;
+    }
+    .pill{
+      display:inline-flex; align-items:center; gap:8px;
+      padding:10px 12px; border-radius:999px;
+      background:#ffffffd9; border:1px solid rgba(0,0,0,.06);
+      font-weight:1000;
+    }
+
+    .partsWrap{ margin-top:12px; display:flex; gap:16px; align-items:stretch; flex-wrap:wrap; }
+    .cartoon{
+      flex: 0 0 280px;
+      background: linear-gradient(135deg, #f8fafc, #fff0f6);
+      border:1px solid rgba(0,0,0,.06);
+      border-radius:22px;
+      padding:14px;
+      display:grid; place-items:center;
+    }
+    .head{
+      width:200px;height:200px;border-radius:50%;
+      background: radial-gradient(circle at 30% 25%, #fff7c2, var(--gold));
+      border:1px solid rgba(0,0,0,.06);
+      box-shadow: 0 18px 35px rgba(0,0,0,.08);
+      position:relative;
+    }
+    .part{
+      position:absolute;
+      border-radius:999px;
+      border:2px dashed rgba(0,0,0,.22);
+      background: rgba(255,255,255,.65);
+      cursor:pointer;
+      display:grid; place-items:center;
+      font-weight:1000;
+      user-select:none;
+      transition: transform .12s ease, filter .12s ease, background .12s ease;
+    }
+    .part:hover{ filter:brightness(1.02); transform: scale(1.03); }
+    .part.done{
+      border-style:solid;
+      border-color: rgba(34,197,94,.55);
+      background: rgba(34,197,94,.14);
+      transform: scale(1.02);
+    }
+    .eyeL{ width:62px; height:36px; left:42px; top:62px; }
+    .eyeR{ width:62px; height:36px; right:42px; top:62px; }
+    .nose{ width:44px; height:44px; left:78px; top:98px; }
+    .mouth{ width:110px; height:42px; left:45px; top:138px; border-radius: 18px; }
+
+    .partsInfo{
+      flex: 1 1 320px;
+      background:#fff;
+      border:1px solid rgba(0,0,0,.06);
+      border-radius:18px;
+      padding:14px;
+      box-shadow: 0 12px 30px rgba(0,0,0,.06);
+    }
+    .checkList{ margin:10px 0 0; padding-left:18px; }
+    .checkList li{ margin:6px 0; font-weight:900; opacity:.9; }
+    .checkList li.done{ color:#0b6b2b; }
+    .lockNote{
+      margin-top:10px;
+      font-weight:950;
+      opacity:.85;
+      background: #f8fafc;
+      border:1px solid rgba(0,0,0,.06);
+      border-radius:14px;
+      padding:10px 12px;
+    }
+
+    .reveal{ display:none; margin-top:14px; padding:14px; border-radius:18px; background: linear-gradient(135deg,#fff,#fff0f6); border:1px solid rgba(0,0,0,.06); }
+    .reveal.show{ display:block; }
+    .picWrap{ display:flex; gap:14px; flex-wrap:wrap; align-items:center; margin-top:10px; }
+    .pic{
+      width:180px; height:180px; border-radius:22px;
+      background:#fff; border:1px dashed rgba(0,0,0,.18);
+      display:grid; place-items:center; overflow:hidden;
+    }
+    .pic img{ width:100%; height:100%; object-fit:cover; display:block; }
+
+    .overlay{ position:fixed; inset:0; background: rgba(0,0,0,.18); display:grid; place-items:center; z-index:999; }
+    .overlay.hidden{ display:none; }
+    .overlayCard{
+      width:min(640px, 92vw);
+      background:#fff;
+      border-radius:22px;
+      padding:18px;
+      box-shadow: var(--shadow);
+      border:1px solid rgba(0,0,0,.06);
+      text-align:center;
+    }
+    .overlayCard h2{ margin:6px 0 6px; font-size:18px; }
+    .overlayCard p{ margin:0 0 12px; font-size:14px; opacity:.85; }
+    .overlayButtons{ display:flex; gap:10px; justify-content:center; flex-wrap:wrap; }
+    .smallBtn{ padding:12px 16px; font-size:14px; font-weight:1000; }
+    .primary{ background: linear-gradient(135deg, var(--blue), var(--purple)); color:#0c1b3a; box-shadow: 0 14px 26px rgba(99,102,241,.18); }
+    .ghost{ background:#fff; border:1px solid rgba(0,0,0,.10); color:#111; }
+
+    .controls{
+      position:fixed; right:14px; bottom:14px;
+      display:flex; gap:10px; align-items:center; flex-wrap:wrap;
+      z-index: 50;
+    }
+    .ctrlBtn{
+      padding:10px 12px; font-size:13px; font-weight:1000;
+      border-radius:999px; border:1px solid rgba(0,0,0,.10);
+      background:#ffffffd9; cursor:pointer;
+      box-shadow: 0 12px 22px rgba(0,0,0,.08);
+    }
+  </style>
+</head>
+
+<body>
+  <div class="floaters" id="floaters"></div>
+  <canvas id="confetti"></canvas>
+
+  <div class="overlay" id="overlay">
+    <div class="overlayCard">
+      <h2>🎶 Tap to start the cartoon music + voice</h2>
+      <p>One tap enables sound in the browser 💖</p>
+      <div class="overlayButtons">
+        <button class="smallBtn primary" id="startBtn">Start Story 💝</button>
+        <button class="smallBtn ghost" id="muteBtn">No Sound 🔇</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <button class="ctrlBtn" id="toggleMusicBtn">Music: On 🎵</button>
+    <button class="ctrlBtn" id="replayVoiceBtn">Replay Voice 🔁</button>
+  </div>
+
+  <div class="stage">
+    <!-- PAGE 1 -->
+    <section class="page active" id="page1">
+      <div class="top">
+        <div class="badge"><span class="moon"></span> Valentine Story 🌙</div>
+        <div class="badge">Page 1/3</div>
+      </div>
+
+      <h1>Hey Yeshna 💕</h1>
+      <p>It’s your <b>second Valentine’s Day</b>! Pinni loves you more to the moon and back 🌙✨</p>
+
+      <div class="box">
+        <div class="spark"></div>
+        <div class="title">Little rhyme time 🎵</div>
+        <p>
+          Roses are red, balloons go “pop”,<br/>
+          Yeshna is cute, from bottom to top! 😄
+        </p>
+
+        <div class="mascot">
+          <div class="face">😊</div>
+          <div class="speech">Tap “Next” to play games ⭐👀</div>
+        </div>
+
+        <div class="btnRow">
+          <button class="yes" id="p1Next">Next ➜</button>
+        </div>
+
+        <div class="dots"><div class="dot on"></div><div class="dot"></div><div class="dot"></div></div>
+      </div>
+    </section>
+
+    <!-- PAGE 2 -->
+    <section class="page" id="page2">
+      <div class="top">
+        <div class="badge"><span class="moon"></span> Games Zone 🎮</div>
+        <div class="badge">Page 2/3</div>
+      </div>
+
+      <h1>Game Time! 😄</h1>
+      <p>First: Collect <b>3 stars</b>. Then: click <b>Eyes, Nose, Mouth</b> 👀👃👄</p>
+
+      <div class="box">
+        <div class="spark"></div>
+
+        <div class="mascot">
+          <div class="face">🤩</div>
+          <div class="speech">Step 1: Tap stars ⭐ | Step 2: Tap face parts 👀👃👄</div>
+        </div>
+
+        <div class="title" style="margin-top:6px;">Step 1: Collect 3 stars ⭐⭐⭐</div>
+        <div class="starsArea" id="starsArea"></div>
+
+        <div class="scoreRow">
+          <span class="pill">Stars: <span id="starCount">0</span>/3 ⭐</span>
+          <span class="pill">Rocket: <span id="rocket">🌙</span></span>
+        </div>
+
+        <div class="hint" id="p2Hint">Tip: stars will appear in random places ✨</div>
+
+        <div class="title" style="margin-top:16px;">Step 2: Click the face parts 👀👃👄</div>
+
+        <div class="partsWrap">
+          <div class="cartoon">
+            <div class="head" id="head">
+              <div class="part eyeL" id="eyeL">👀</div>
+              <div class="part eyeR" id="eyeR">👀</div>
+              <div class="part nose" id="nose">👃</div>
+              <div class="part mouth" id="mouth">👄</div>
+            </div>
+          </div>
+
+          <div class="partsInfo">
+            <div class="title" style="margin:0;">Mission Checklist ✅</div>
+            <ul class="checkList">
+              <li id="chkStars">Collect 3 stars ⭐⭐⭐</li>
+              <li id="chkEyes">Click eyes 👀</li>
+              <li id="chkNose">Click nose 👃</li>
+              <li id="chkMouth">Click mouth 👄</li>
+            </ul>
+            <div class="lockNote" id="unlockNote">
+              Unlock rule: Finish <b>ALL</b> checklist items to go to the final question 💌
+            </div>
+          </div>
+        </div>
+
+        <div class="btnRow">
+          <button class="yes" id="p2Next" disabled style="opacity:.55; cursor:not-allowed;">Go to Final Question ➜</button>
+        </div>
+
+        <div class="dots"><div class="dot"></div><div class="dot on"></div><div class="dot"></div></div>
+      </div>
+    </section>
+
+    <!-- PAGE 3 -->
+    <section class="page" id="page3">
+      <div class="top">
+        <div class="badge"><span class="moon"></span> Final 💌</div>
+        <div class="badge">Page 3/3</div>
+      </div>
+
+      <h1>Final Question is waiting… 😍</h1>
+      <p><b>Waittttt…</b> one last tiny warm-up 😄 Choose the best answer:</p>
+
+      <div class="box">
+        <div class="spark"></div>
+
+        <div class="title">Bonus Question 🎁</div>
+        <p>Do you want a super big hug 🤗 or a super big kiss 😘?</p>
+        <div class="btnRow">
+          <button class="yes" id="hugBtn">Hug 🤗</button>
+          <button class="yes" id="kissBtn" style="background:linear-gradient(135deg,#ff4d6d,#ff8fab); color:#3b0510;">Kiss 😘</button>
+        </div>
+
+        <div class="hint" id="bonusHint">Pick one, then the final Valentine question appears 👇</div>
+
+        <div id="finalBlock" style="display:none; margin-top:16px;">
+          <div class="mascot">
+            <div class="face" id="face3">🥺</div>
+            <div class="speech" id="speech3">Final question time! Click YES for magic ✨</div>
+          </div>
+
+          <div class="title" style="margin-top:10px;">Will you be my Valentine forever? 💖</div>
+
+          <div class="btnRow">
+            <button class="yes" id="finalYes">Yes ✅</button>
+            <button class="no" id="finalNo" data-level="0">No ❌</button>
+          </div>
+
+          <div class="hint" id="finalHint">Hint: Telugu dialogue on NO 😄</div>
+
+          <div class="reveal" id="finalReveal">
+            <div class="title" style="margin:0;">Yayyyy! 🎉</div>
+            <p style="margin-top:6px;">You’re my Valentine forever 💖✨</p>
+
+            <div class="picWrap">
+              <div class="pic">
+                <img src="Final.jpeg" alt="Yeshna photo" />
+              </div>
+              <div>
+                <p style="margin:0;"><b>Love you lots,</b></p>
+                <p style="margin:0;">Pinni 🥰</p>
+                <p style="margin-top:10px; font-size:13px; opacity:.75;">
+                  (Click YES again for extra fireworks!)
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="dots"><div class="dot"></div><div class="dot"></div><div class="dot on"></div></div>
+      </div>
+    </section>
+  </div>
+
+<script>
+  // ===== Grab elements safely (NO auto-globals) =====
+  const page1El = document.getElementById("page1");
+  const page2El = document.getElementById("page2");
+  const page3El = document.getElementById("page3");
+  const pages = [page1El, page2El, page3El];
+
+  const overlayEl = document.getElementById("overlay");
+  const startBtnEl = document.getElementById("startBtn");
+  const muteBtnEl = document.getElementById("muteBtn");
+  const toggleMusicBtnEl = document.getElementById("toggleMusicBtn");
+  const replayVoiceBtnEl = document.getElementById("replayVoiceBtn");
+
+  const p1NextEl = document.getElementById("p1Next");
+
+  const starsAreaEl = document.getElementById("starsArea");
+  const starCountEl = document.getElementById("starCount");
+  const rocketEl = document.getElementById("rocket");
+  const p2HintEl = document.getElementById("p2Hint");
+  const p2NextEl = document.getElementById("p2Next");
+
+  const chkStarsEl = document.getElementById("chkStars");
+  const chkEyesEl = document.getElementById("chkEyes");
+  const chkNoseEl = document.getElementById("chkNose");
+  const chkMouthEl = document.getElementById("chkMouth");
+  const unlockNoteEl = document.getElementById("unlockNote");
+
+  const eyeLEl = document.getElementById("eyeL");
+  const eyeREl = document.getElementById("eyeR");
+  const noseEl = document.getElementById("nose");
+  const mouthEl = document.getElementById("mouth");
+
+  const hugBtnEl = document.getElementById("hugBtn");
+  const kissBtnEl = document.getElementById("kissBtn");
+  const bonusHintEl = document.getElementById("bonusHint");
+  const finalBlockEl = document.getElementById("finalBlock");
+  const finalRevealEl = document.getElementById("finalReveal");
+  const finalNoEl = document.getElementById("finalNo");
+  const finalYesEl = document.getElementById("finalYes");
+  const finalHintEl = document.getElementById("finalHint");
+  const face3El = document.getElementById("face3");
+  const speech3El = document.getElementById("speech3");
+
+  // ===== Page nav =====
+  let current = 0;
+  function showPage(i){
+    pages[current].classList.remove("active");
+    current = i;
+    pages[current].classList.add("active");
+    window.scrollTo({top:0, behavior:"smooth"});
+    onEnterPage(i);
+  }
+
+  // ===== Floating hearts =====
+  const floaters = document.getElementById("floaters");
+  for (let i = 0; i < 22; i++) {
+    const f = document.createElement("div");
+    f.className = "floater";
+    const left = Math.random() * 100;
+    const dur = 10 + Math.random() * 16;
+    const delay = -Math.random() * dur;
+    const dx = (Math.random() * 220 - 110).toFixed(0) + "px";
+    f.style.left = left + "vw";
+    f.style.bottom = (-20 - Math.random() * 40) + "vh";
+    f.style.animationDuration = dur + "s";
+    f.style.animationDelay = delay + "s";
+    f.style.setProperty("--dx", dx);
+    f.style.transform = `scale(${0.7 + Math.random() * 1.3})`;
+    floaters.appendChild(f);
+  }
+  function burstHearts(){
+    for(let i=0;i<10;i++){
+      const h=document.createElement("div");
+      h.className="floater";
+      h.style.left=(48 + (Math.random()*16-8))+"vw";
+      h.style.bottom="12vh";
+      h.style.animationDuration=(4 + Math.random()*2)+"s";
+      h.style.animationDelay="0s";
+      h.style.setProperty("--dx",(Math.random()*240-120).toFixed(0)+"px");
+      h.style.opacity="0.85";
+      floaters.appendChild(h);
+      setTimeout(()=>h.remove(), 6000);
+    }
+  }
+
+  // ===== Confetti =====
+  const canvas = document.getElementById("confetti");
+  const ctx = canvas.getContext("2d");
+  let confettiPieces = [];
+  let confettiRunning = false;
+
+  function resizeCanvas(){
+    canvas.width = window.innerWidth * devicePixelRatio;
+    canvas.height = window.innerHeight * devicePixelRatio;
+    ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+  }
+  window.addEventListener("resize", resizeCanvas);
+  resizeCanvas();
+
+  function startConfetti(ms=2600){
+    canvas.classList.add("show");
+    const colors = ["#ff4d6d","#ff8fab","#ffd86b","#22c55e","#60a5fa","#a78bfa"];
+    confettiPieces = Array.from({length: 190}, () => ({
+      x: Math.random() * window.innerWidth,
+      y: -20 - Math.random() * window.innerHeight * 0.3,
+      r: 4 + Math.random() * 6,
+      vx: -2.4 + Math.random() * 4.8,
+      vy: 2 + Math.random() * 5,
+      rot: Math.random() * Math.PI,
+      vr: -0.18 + Math.random() * 0.36,
+      c: colors[Math.floor(Math.random() * colors.length)],
+      s: 0.7 + Math.random() * 1.4
+    }));
+
+    const endAt = performance.now() + ms;
+    if (!confettiRunning){
+      confettiRunning = true;
+      (function loop(t){
+        ctx.clearRect(0,0,window.innerWidth, window.innerHeight);
+        for (const p of confettiPieces){
+          p.x += p.vx; p.y += p.vy; p.rot += p.vr; p.vy += 0.02;
+          ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot);
+          ctx.fillStyle = p.c;
+          ctx.fillRect(-p.r, -p.r, p.r*2*p.s, p.r*2);
+          ctx.restore();
+        }
+        confettiPieces = confettiPieces.filter(p => p.y < window.innerHeight + 40);
+        if (t < endAt || confettiPieces.length) requestAnimationFrame(loop);
+        else { confettiRunning = false; canvas.classList.remove("show"); ctx.clearRect(0,0,window.innerWidth, window.innerHeight); }
+      })(performance.now());
+    }
+  }
+
+  // ===== Voice (TTS) =====
+  let SOUND_ENABLED = true;
+  function pickCuteVoice(){
+    const voices = speechSynthesis.getVoices() || [];
+    const preferred = ["samantha","zira","victoria","karen","moira","tessa","amelie","serena","aria"];
+    let v = voices.find(x => preferred.some(p => x.name.toLowerCase().includes(p)));
+    if (!v) v = voices.find(x => x.lang && x.lang.toLowerCase().startsWith("en"));
+    return v || null;
+  }
+  function speak(text){
+    if (!SOUND_ENABLED) return;
+    try { speechSynthesis.cancel(); } catch(e){}
+    const msg = new SpeechSynthesisUtterance(text);
+    msg.rate = 0.95; msg.pitch = 1.22; msg.volume = 1;
+    const v = pickCuteVoice(); if (v) msg.voice = v;
+    speechSynthesis.speak(msg);
+  }
+  function onEnterPage(i){
+    if (!SOUND_ENABLED) return;
+    if (i === 0) speak("Hey Yeshna! Tap next to play games!");
+    if (i === 1) speak("Collect three stars, then click eyes, nose, and mouth!");
+    if (i === 2) speak("Waittt! Bonus question first. Then final question is waiting!");
+  }
+  replayVoiceBtnEl.addEventListener("click", () => onEnterPage(current));
+
+  // ===== Music (soft loop) =====
+  let audioCtx = null;
+  let musicOn = false;
+  let musicVolume = 0.18;
+  let musicTimer = null;
+
+  function ensureAudio(){
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+  function playNote(freq, durationMs, type, gain, when=0){
+    if (!SOUND_ENABLED || !musicOn) return;
+    ensureAudio();
+    const t0 = audioCtx.currentTime + when;
+
+    const osc = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, t0);
+
+    g.gain.setValueAtTime(0.0001, t0);
+    g.gain.exponentialRampToValueAtTime(gain * musicVolume, t0 + 0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + durationMs/1000);
+
+    osc.connect(g); g.connect(audioCtx.destination);
+    osc.start(t0);
+    osc.stop(t0 + durationMs/1000 + 0.03);
+  }
+  const chordProg = [
+    [261.63, 329.63, 392.00],
+    [349.23, 440.00, 523.25],
+    [392.00, 493.88, 587.33],
+    [261.63, 329.63, 392.00],
+  ];
+  const melody = [523.25, 587.33, 659.25, 587.33, 523.25, 493.88, 523.25, 0];
+
+  async function startMusic(){
+    if (!SOUND_ENABLED) return;
+    ensureAudio();
+    if (audioCtx.state === "suspended") await audioCtx.resume();
+    if (musicOn) return;
+    musicOn = true;
+    toggleMusicBtnEl.textContent = "Music: On 🎵";
+
+    let step = 0;
+    const loop = () => {
+      if (!musicOn) return;
+      const chord = chordProg[step % chordProg.length];
+      chord.forEach((f, idx) => playNote(f, 900, "sine", 0.10, idx * 0.01));
+      playNote(chord[0] / 2, 900, "triangle", 0.12, 0);
+      const m = melody[step % melody.length];
+      if (m > 0) playNote(m, 280, "sine", 0.14, 0.12);
+      step++;
+      musicTimer = setTimeout(loop, 900);
+    };
+    loop();
+  }
+  function stopMusic(){
+    musicOn = false;
+    if (musicTimer) clearTimeout(musicTimer);
+    musicTimer = null;
+    toggleMusicBtnEl.textContent = "Music: Off 🔇";
+  }
+  toggleMusicBtnEl.addEventListener("click", async () => {
+    if (!SOUND_ENABLED) return;
+    if (musicOn) stopMusic(); else await startMusic();
+  });
+
+  // ===== SFX =====
+  function sfx(freqs){
+    if (!SOUND_ENABLED) return;
+    ensureAudio();
+    if (audioCtx.state === "suspended") audioCtx.resume();
+    const now = audioCtx.currentTime;
+    freqs.forEach((f, i) => {
+      const osc = audioCtx.createOscillator();
+      const g = audioCtx.createGain();
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(f, now + i*0.05);
+      g.gain.setValueAtTime(0.0001, now + i*0.05);
+      g.gain.exponentialRampToValueAtTime(0.18, now + i*0.05 + 0.01);
+      g.gain.exponentialRampToValueAtTime(0.0001, now + i*0.05 + 0.12);
+      osc.connect(g); g.connect(audioCtx.destination);
+      osc.start(now + i*0.05);
+      osc.stop(now + i*0.05 + 0.14);
+    });
+  }
+  const pop = () => sfx([880, 1175]);
+  const boing = () => sfx([330, 392, 523]);
+
+  // ===== Overlay start =====
+  startBtnEl.addEventListener("click", async () => {
+    overlayEl.classList.add("hidden");
+    SOUND_ENABLED = true;
+    await startMusic();
+    onEnterPage(0);
+  });
+  muteBtnEl.addEventListener("click", () => {
+    overlayEl.classList.add("hidden");
+    SOUND_ENABLED = false;
+    stopMusic();
+  });
+
+  // ===== Page 1 -> Page 2 =====
+  p1NextEl.addEventListener("click", () => { pop(); showPage(1); });
+
+  // ===== Page 2 games (stars + face parts) =====
+  const partsDone = { stars:false, eyes:false, nose:false, mouth:false };
+  let starsCollected = 0;
+  const rocketStates = ["🌙","🚀","🚀✨","🚀💖","🚀🌈"];
+
+  function setNextEnabled(enabled){
+    p2NextEl.disabled = !enabled;
+    p2NextEl.style.opacity = enabled ? "1" : ".55";
+    p2NextEl.style.cursor = enabled ? "pointer" : "not-allowed";
+  }
+
+  function checkUnlock(){
+    const allDone = partsDone.stars && partsDone.eyes && partsDone.nose && partsDone.mouth;
+    if (allDone){
+      unlockNoteEl.innerHTML = "Unlocked! ✅ <b>Final question is waiting for your response</b> on the next screen 💌";
+      setNextEnabled(true);
+      speak("Awesome! Final question is waiting. Click the button to continue.");
+    }
+  }
+
+  function spawnStar(){
+    const star = document.createElement("div");
+    star.className = "star";
+    star.textContent = "⭐";
+    const pad = 18;
+    const x = Math.random() * (starsAreaEl.clientWidth - pad*2) + pad;
+    const y = Math.random() * (starsAreaEl.clientHeight - pad*2) + pad;
+    star.style.left = x + "px";
+    star.style.top = y + "px";
+
+    star.addEventListener("click", () => {
+      if (starsCollected >= 3) { star.remove(); return; }
+      starsCollected++;
+      starCountEl.textContent = String(starsCollected);
+      rocketEl.textContent = rocketStates[Math.min(rocketStates.length-1, starsCollected)];
+      pop();
+      speak(["Yay star!", "Good job!", "One more!", "Stars done!"][Math.min(3, starsCollected-1)]);
+      burstHearts();
+      star.remove();
+
+      if (starsCollected < 3) setTimeout(spawnStar, 250);
+      else {
+        chkStarsEl.classList.add("done");
+        partsDone.stars = true;
+        p2HintEl.textContent = "Stars done ✅ Now click eyes, nose, mouth 👀👃👄";
+        checkUnlock();
+      }
+    });
+
+    starsAreaEl.appendChild(star);
+  }
+
+  function markDone(partEl, chkEl, key){
+    if (partsDone[key]) return;
+    partsDone[key] = true;
+    partEl.classList.add("done");
+    chkEl.classList.add("done");
+    pop();
+    speak(key === "eyes" ? "Eyes!" : key === "nose" ? "Nose!" : "Mouth!");
+    checkUnlock();
+  }
+
+  function resetPage2(){
+    // reset booleans
+    partsDone.stars = partsDone.eyes = partsDone.nose = partsDone.mouth = false;
+
+    // reset stars
+    starsCollected = 0;
+    starCountEl.textContent = "0";
+    rocketEl.textContent = "🌙";
+    starsAreaEl.innerHTML = "";
+    for (let i=0;i<4;i++) setTimeout(spawnStar, 150*i);
+
+    // reset checklist
+    [chkStarsEl, chkEyesEl, chkNoseEl, chkMouthEl].forEach(x => x.classList.remove("done"));
+    [eyeLEl, eyeREl, noseEl, mouthEl].forEach(x => x.classList.remove("done"));
+    unlockNoteEl.innerHTML = "Unlock rule: Finish <b>ALL</b> checklist items to go to the final question 💌";
+    p2HintEl.textContent = "Tip: stars will appear in random places ✨";
+    setNextEnabled(false);
+  }
+
+  eyeLEl.addEventListener("click", () => markDone(eyeLEl, chkEyesEl, "eyes"));
+  eyeREl.addEventListener("click", () => markDone(eyeREl, chkEyesEl, "eyes"));
+  noseEl.addEventListener("click", () => markDone(noseEl, chkNoseEl, "nose"));
+  mouthEl.addEventListener("click", () => markDone(mouthEl, chkMouthEl, "mouth"));
+
+  p2NextEl.addEventListener("click", () => {
+    if (p2NextEl.disabled) return;
+    pop();
+    showPage(2);
+  });
+
+  // ===== Page 3 bonus + final =====
+  function resetPage3(){
+    finalRevealEl.classList.remove("show");
+    finalBlockEl.style.display = "none";
+    bonusHintEl.textContent = "Pick one, then the final Valentine question appears 👇";
+    face3El.textContent = "🥺";
+    speech3El.textContent = "Final question time! Click YES for magic ✨";
+    finalHintEl.textContent = "Hint: Telugu dialogue on NO 😄";
+    noAttempts = 0;
+    finalNoEl.setAttribute("data-level", "0");
+  }
+
+  function showFinal(){
+    finalBlockEl.style.display = "block";
+    bonusHintEl.textContent = "Final question unlocked ✅ Please answer on this screen 👇";
+    speak("Final question unlocked! Please answer now.");
+  }
+
+  hugBtnEl.addEventListener("click", () => { pop(); burstHearts(); speak("Big hug selected!"); showFinal(); });
+  kissBtnEl.addEventListener("click", () => { pop(); burstHearts(); speak("Big kiss selected!"); showFinal(); });
+
+  const TELUGU_DIALOGUE = "Nenu hurt Iyanu";
+  let noAttempts = 0;
+  function makeNoHurt(btn){
+    noAttempts++;
+    btn.classList.remove("shy");
+    void btn.offsetWidth;
+    btn.classList.add("shy");
+    btn.setAttribute("data-level", String(Math.min(8, noAttempts)));
+    finalHintEl.textContent = `😢 ${TELUGU_DIALOGUE}... (Click YES ✅)`;
+    boing();
+    speak(TELUGU_DIALOGUE + ". Please click yes.");
+  }
+
+  finalNoEl.addEventListener("click", (e)=>{ e.preventDefault(); makeNoHurt(finalNoEl); });
+  finalNoEl.addEventListener("mouseenter", ()=>makeNoHurt(finalNoEl));
+  finalNoEl.addEventListener("touchstart", (e)=>{ e.preventDefault(); makeNoHurt(finalNoEl); }, {passive:false});
+
+  let yesClicks = 0;
+  finalYesEl.addEventListener("click", ()=>{
+    yesClicks++;
+    pop();
+    startConfetti(2800);
+    burstHearts();
+    finalRevealEl.classList.add("show");
+    face3El.textContent = "🥳";
+    speech3El.textContent = "Yayyy! Confetti party time! 🎉";
+    finalHintEl.textContent = yesClicks > 1 ? "More fireworks! 🎆 Click YES again!" : "Yayyyy! You said YES! 💖";
+    speak("Yay! Yeshna said yes! Valentine forever!");
+  });
+
+  // ===== Enter page hooks =====
+  function onEnterPage(i){
+    if (i === 1) resetPage2();
+    if (i === 2) resetPage3();
+    if (SOUND_ENABLED) {
+      if (i === 0) speak("Hey Yeshna! Tap next to play games!");
+      if (i === 1) speak("Collect three stars, then click eyes, nose, and mouth!");
+      if (i === 2) speak("Waittt! Bonus question first. Then final question is waiting!");
+    }
+  }
+
+  // Initialize
+  onEnterPage(0);
+</script>
+</body>
+</html>
